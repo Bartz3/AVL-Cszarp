@@ -5,7 +5,7 @@ using System.IO;
 
 class Program
 {
-    public static string path = "dwa.txt";
+    public static string path = "test.txt";
     public static string path2 = "test.txt";
     public static string mainPath = "plik.txt";
     
@@ -38,7 +38,17 @@ class Program
                         string naz = Convert.ToString(Console.ReadLine());
                         string imie = Convert.ToString(Console.ReadLine());
                         string adres = Convert.ToString(Console.ReadLine());
-                        tree.Add(naz,imie,adres);
+                        Console.WriteLine("");
+                        Console.WriteLine("Podaj numer telefonu dla {0} {1} do dodania." ,naz,imie);
+                        string tel1, tel2, tel3;
+                        List<string> _tel = new List<string>();
+                        tel1= Convert.ToString(Console.ReadLine());
+                        tel2= Convert.ToString(Console.ReadLine());
+                        tel3= Convert.ToString(Console.ReadLine());
+                        _tel.Add(tel1);
+                        _tel.Add(tel2);
+                        _tel.Add(tel3);
+                        tree.Add(naz,imie,adres,_tel);
                     }
                     break;
                 case 2:
@@ -59,19 +69,27 @@ class Program
                 case 4:
                     {
                         Console.WriteLine("Wczytanie z pliku {0}.",path);
-                        string line,nazwisko,imie,adres;
+                        string line,nazwisko,imie,adres,tel1,tel2,tel3;
                         List<string> telefony = new List<string>();
                         StreamReader sr = new StreamReader(path);
                         string[] pom;
-                        
+                        List<string> _tel;
                         while ((line = sr.ReadLine()) != null)
                         {
-                            pom = line.Split(' ',',');
+                            _tel = new List<string>();
+                            pom = line.Split(',');
                             nazwisko = pom[0];
                             imie = pom[1];
                             adres = pom[2];
-                           
-                            tree.Add(nazwisko,imie,adres);
+                            tel1 = pom[3];
+                            tel2 = pom[4];
+                            tel3 = pom[5];
+                           //if (tel2 == " ") tel2 = null;
+                           //if (tel3 == " ") tel3 = null;
+                            _tel.Add(tel1);
+                            _tel.Add(tel2);
+                            _tel.Add(tel3);
+                            tree.Add(nazwisko,imie,adres,_tel);
                         }
                         sr.Close();
                     }break;
@@ -105,11 +123,19 @@ public class AVL
         public List<string>telefony;
         public Node left;
         public Node right;
-        public Node(string _nazwisko,string _imie,string _adres) // Konstruktor z przypisaniem wartości do drzewa
+      // public Node(string _nazwisko,string _imie,string _adres) // Konstruktor z przypisaniem wartości do drzewa
+      // {
+      //     this.nazwisko = _nazwisko;
+      //     this.imie = _imie;
+      //     this.adres = _adres;
+      //
+      // }
+        public Node(string _nazwisko, string _imie, string _adres,List<string> _tel) // Konstruktor z przypisaniem wartości do drzewa
         {
             this.nazwisko = _nazwisko;
             this.imie = _imie;
             this.adres = _adres;
+            this.telefony = new List<string>(_tel);
 
         }
         public Node() { }
@@ -118,9 +144,9 @@ public class AVL
     public AVL() // Konstruktor bezparametrowy
     {
     }
-    public void Add(string nazwisko,string imie,string adres)
+    public void Add(string nazwisko,string imie,string adres, List<string> _tel)
     {
-        Node newItem = new Node(nazwisko,imie,adres);
+        Node newItem = new Node(nazwisko,imie,adres,_tel);
         if (root == null)
         {
             root = newItem;
@@ -291,7 +317,7 @@ public class AVL
     public Node Find(string _nazw,string _imie,string _adres)
     {
         if (Find(_nazw, root) == null) return null;
-        if ((Find(_nazw, root).nazwisko == _nazw)&& (Find(_nazw, root).imie == _imie) && (Find(_nazw, root).adres == _adres))
+        if ((Find2(_nazw, _imie, root).nazwisko == _nazw))// || (Find3(_adres, root).adres == _adres)
         {
             Console.WriteLine("{0} {1} - {2} znajduje się w książce telefonicznej.\nOto numery telefonow: ", _nazw,_imie,_adres);
         }
@@ -301,32 +327,108 @@ public class AVL
         }
         return null;
     }
-    private Node Find(string target, Node current)
+    private Node Find(string _nazw, Node current)
     {
         if (current== null) return null;
-        int compare = String.Compare(target, current.nazwisko);
+        int compare = String.Compare(_nazw, current.nazwisko);
 
 
         if (compare<1) // target < current.nazwisko
         {
-            if (target == current.nazwisko && target==current.imie && target==current.adres)
+            if (_nazw == current.nazwisko)
             {
                 return current;
             }
             else if(current.left!=null)
-                return Find(target, current.left);
+                return Find(_nazw, current.left);
         }
         else // target > current.nazwisko
         {
-            if (target == current.nazwisko && target == current.imie && target == current.adres)
+            if (_nazw == current.nazwisko)
             {
                 return current;
             }
             else if(current.right != null)
-                return Find(target, current.right);
+                return Find(_nazw, current.right);
         }
         return current;
+    }
 
+    private Node Find2(string _nazw, string _imie, Node current)
+    {
+        if (current == null) return null;
+        int compareNaz = String.Compare(_nazw, current.imie);
+
+
+        if (compareNaz == 1) // target < current.nazwisko
+        {
+            if (_nazw == current.nazwisko)
+            {
+                return current;
+            }
+            else if (current.left != null)
+                return Find2(_nazw, _imie, current.left);
+        }
+        else if(compareNaz == -1 )// target > current.nazwisko
+        {
+            if (_nazw == current.nazwisko)
+            {
+                return current;
+            }
+            else if (current.right != null)
+                return Find2(_nazw, _imie, current.right);
+        }
+        else if(compareNaz == 0)
+        {
+            int compareImie = String.Compare(_imie, current.imie);
+
+            if (compareImie < 1) // target < current.nazwisko
+            {
+                if (_imie == current.imie)
+                {
+                    return current;
+                }
+                else if (current.left != null)
+                    return Find2(_nazw,_imie,current.left);
+            }
+            else
+            {
+                if (_imie == current.imie)
+                {
+                    return current;
+                }
+                else if (current.right != null)
+                    return Find2(_nazw,_imie, current.right);
+            }
+
+        }
+        return current;
+    }
+    private Node Find3(string _adres, Node current)
+    {
+        if (current == null) return null;
+        int compare = String.Compare(_adres, current.adres);
+
+
+        if (compare < 1) // target < current.nazwisko
+        {
+            if (_adres == current.adres)
+            {
+                return current;
+            }
+            else if (current.left != null)
+                return Find3(_adres, current.left);
+        }
+        else // target > current.nazwisko
+        {
+            if (_adres == current.adres)
+            {
+                return current;
+            }
+            else if (current.right != null)
+                return Find3(_adres, current.right);
+        }
+        return current;
     }
     public void DisplayTree()
     {
@@ -345,7 +447,8 @@ public class AVL
         if (current != null)
         {
             InOrderDisplayTree(current.left);
-            Console.WriteLine("{0} {1} -{2}  ",current.nazwisko,current.imie,current.adres);
+            Console.WriteLine("{0} {1} -{2} : {3} | {4} | {5}",
+                current.nazwisko,current.imie,current.adres,current.telefony[0], current.telefony[1], current.telefony[2]);
             InOrderDisplayTree(current.right);
         }
         
